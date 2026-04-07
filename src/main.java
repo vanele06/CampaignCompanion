@@ -1,15 +1,26 @@
 import java.awt.*;
+import com.github.kwhat.jnativehook.GlobalScreen;
+import com.github.kwhat.jnativehook.NativeHookException;
 
 public class Main {
     public static void main(String[] args) {
-        EventQueue.invokeLater(() -> {
-            Dashboard dash = new Dashboard();
-            
-            // 1. Always start on the primary monitor for reliability
-            dash.setLocationRelativeTo(null); 
-            
-            // 2. Make it visible so they can see the "Switch Monitor" button
-            dash.setVisible(true);
-        });
+        try {
+            // Start the Global Hook first
+            GlobalScreen.registerNativeHook();
+
+            InputHandler handler = new InputHandler();
+            GlobalScreen.addNativeKeyListener(handler);
+        
+            EventQueue.invokeLater(() -> {
+                Dashboard gui = new Dashboard(handler);
+                handler.setGui(gui); 
+                gui.setVisible(true);
+            });
+
+        } catch (NativeHookException ex) {
+            System.err.println("Problem registering the native hook.");
+            ex.printStackTrace();
+            System.exit(1);
+        }
     }
 }
