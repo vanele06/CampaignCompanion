@@ -1,28 +1,55 @@
-import java.awt.event.KeyEvent;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.*;
+import java.util.Properties;
 
 public class InputHandler {
-    // Maps KeyCode (Integer) -> Action (Enum)
-    private Map<Integer, Action> bindings = new HashMap<>();
+    private Properties userBinds = new Properties();
+    private final String USER_PATH = "data/user_binds.properties";
+    private final String DEFAULT_PATH = "data/default_binds.properties";
 
     public InputHandler() {
-        // Set default bindings
-        bindings.put(KeyEvent.VK_K, Action.NEXT);
-        bindings.put(KeyEvent.VK_L, Action.NEXT_PAGE);
-        bindings.put(KeyEvent.VK_O, Action.PREVIOUS);
+        loadBinds();
     }
 
-    public void rebind(Action action, int newKeyCode) {
-        bindings.values().removeIf(a -> a == action);
-        bindings.put(newKeyCode, action);
+    private void loadBinds() {
+        File userFile = new File(USER_PATH);
+        
+        // If user file doesn't exist, load from default then save a copy
+        if (!userFile.exists()) {
+            System.out.println("User binds missing, loading defaults...");
+            loadFromFile(DEFAULT_PATH);
+            saveBinds(); 
+        } else {
+            loadFromFile(USER_PATH);
+        }
     }
 
-    public Action getAction(int keyCode) {
-        return bindings.get(keyCode);
+    private void loadFromFile(String path) {
+        try (InputStream input = new FileInputStream(path)) {
+            userBinds.load(input);
+        } catch (IOException ex) {
+            System.err.println("Could not find file: " + path);
+        }
     }
 
-    public Map<Integer, Action> getBindings() {
-        return bindings;
+    public void saveBinds() {
+        try (OutputStream output = new FileOutputStream(USER_PATH)) {
+            userBinds.store(output, "Campaign Companion - Key Bindings");
+        } catch (IOException io) {
+            io.printStackTrace();
+        }
+    }
+
+    public void rebind(Action action, int keyCode) {
+        userBinds.setProperty(action.name(), String.valueOf(keyCode));
+        saveBinds();
+    }
+
+    public int getBinding(Action action) {
+        String code = userBinds.getProperty(action.name());
+        try {
+            return (code != null) ? Integer.parseInt(code) : -1;
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 }

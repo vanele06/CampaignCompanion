@@ -1,4 +1,8 @@
 import javax.swing.*;
+import com.github.kwhat.jnativehook.GlobalScreen;
+import com.github.kwhat.jnativehook.NativeHookException;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -30,10 +34,35 @@ public class Dashboard extends JFrame {
         this.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                Action action = inputHandler.getAction(e.getKeyCode());
-                if (action != null) {
-                    processAction(action);
+                // Iterate through your Enum to see if the pressed key matches a saved binding
+                Action triggeredAction = null;
+                for (Action a : Action.values()) {
+                    if (inputHandler.getBinding(a) == e.getKeyCode()) {
+                        triggeredAction = a;
+                        break;
+                    }
                 }
+
+                if (triggeredAction != null) {
+                    processAction(triggeredAction);
+                }
+                if (triggeredAction != null) {
+                    processAction(triggeredAction);
+                }
+            }
+        });
+
+        // Close all JNativeHook procces uppon closing Window
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                try {
+                    // This is the "Kill Switch"
+                    GlobalScreen.unregisterNativeHook();
+                } catch (NativeHookException ex) {
+                    ex.printStackTrace();
+                }
+                System.exit(0);
             }
         });
 

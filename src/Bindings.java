@@ -1,13 +1,10 @@
-import java.util.Map;
-import java.awt.event.KeyEvent;
+import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
 
 public class Bindings {
-    // This class purely holds the data for the overview
     public static String getHumanReadable(Action action, InputHandler handler) {
-        for (Map.Entry<Integer, Action> entry : handler.getBindings().entrySet()) {
-            if (entry.getValue() == action) {
-                return KeyEvent.getKeyText(entry.getKey());
-            }
+        int code = handler.getBinding(action);
+        if (code != -1) {
+            return NativeKeyEvent.getKeyText(code);
         }
         return "Not Bound";
     }
