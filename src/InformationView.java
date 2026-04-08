@@ -73,4 +73,10 @@ public class InformationView extends JPanel {
     public void updateContent(String text) {
         SwingUtilities.invokeLater(() -> displayLabel.setText(text));
     }
+
+    public void handleStep(boolean forward) {
+        if (sidebarMenu != null) {
+            sidebarMenu.cycleSelection(forward);
+        }
+    }
 }

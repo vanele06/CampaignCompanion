@@ -28,13 +28,16 @@ public class RebindDialog extends JDialog implements NativeKeyListener {
         int code = e.getKeyCode();
         String keyName = NativeKeyEvent.getKeyText(code);
         
-        handler.rebind(action, code);
+        handler.rebind(action, code); // Saves to file
         
-        // Unregister so it stops listening after the key is caught
         GlobalScreen.removeNativeKeyListener(this);
         
-        // Swing updates must happen on the Event Dispatch Thread
         SwingUtilities.invokeLater(() -> {
+            // Refresh the labels on the parent dashboard
+            if (getParent() instanceof Dashboard) {
+                ((Dashboard) getParent()).refreshButtonLabels();
+            }
+            
             JOptionPane.showMessageDialog(this, action + " bound to " + keyName);
             dispose();
         });

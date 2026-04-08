@@ -3,11 +3,14 @@ import java.awt.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SidebarMenu extends JPanel {
     private JPanel menuContainer;
     private Map<String, JPanel> subPanels = new LinkedHashMap<>();
     private JButton currentlySelectedSubItem = null;
+    private List<JButton> allSubButtons = new ArrayList<>();
 
     public SidebarMenu(Consumer<String> onGuideSelected) {
         setLayout(new BorderLayout());
@@ -91,6 +94,7 @@ public class SidebarMenu extends JPanel {
                 // Send the text to your main display
                 onGuideSelected.accept(item); 
             });
+            allSubButtons.add(subBtn);
             subPanel.add(subBtn);
         }
 
@@ -113,5 +117,40 @@ public class SidebarMenu extends JPanel {
         subPanels.put(title, subPanel);
         menuContainer.add(headerBtn);
         menuContainer.add(subPanel);
+    }
+    
+    public void cycleSelection(boolean forward) {
+        if (allSubButtons.isEmpty()) return;
+
+        int currentIndex = allSubButtons.indexOf(currentlySelectedSubItem);
+        int nextIndex;
+
+        if (forward) {
+            nextIndex = (currentIndex + 1) % allSubButtons.size();
+        } else {
+            nextIndex = (currentIndex - 1 + allSubButtons.size()) % allSubButtons.size();
+        }
+
+        JButton target = allSubButtons.get(nextIndex);
+        JPanel targetParentPanel = (JPanel) target.getParent();
+
+        // --- FIX: Close all other dropdowns first ---
+        if (!targetParentPanel.isVisible()) {
+            for (JPanel p : subPanels.values()) {
+                p.setVisible(false);
+            }
+            // Open the parent panel of the item we are moving to
+            targetParentPanel.setVisible(true);
+            
+            // Refresh the container to show the layout changes
+            menuContainer.revalidate();
+            menuContainer.repaint();
+        }
+
+        // Programmatically trigger the click to update text and highlights
+        target.doClick(); 
+
+        // Ensure the new selection is scrolled into view
+        target.scrollRectToVisible(new Rectangle(0, 0, target.getWidth(), target.getHeight()));
     }
 }
